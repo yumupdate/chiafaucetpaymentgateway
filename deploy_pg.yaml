@@ -1,0 +1,29 @@
+    ---
+    - hosts: all
+      tasks:
+      - name: Installing Nginx
+        yum:
+          name: "{{ software }}"
+          state: latest
+        vars:
+          software:
+          - nginx
+      - name: Copying files to the PG
+        copy:
+          src: "{{item}}"
+          dest: /root/
+          owner: root
+          group: root
+          mode: 0660
+        loop:
+          - payment.py
+      - name: Create payment job
+        cron:
+          name: "payment job"
+          minute: "*/5"
+          job: "/root/chia/chia-blockchain/venv/bin/python /root/payment.py"
+      - name: Enable and start Nginx
+        systemd:
+          name: nginx
+          state: started
+          enabled: true
